@@ -3,9 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>号码对比工具</title>
+<title>号码上架/下架工具</title>
 
 <style>
+
 *{
     margin:0;
     padding:0;
@@ -59,12 +60,22 @@ textarea{
 
 button{
     padding:10px 25px;
-    margin:0 8px;
+    margin:0 6px;
     border:none;
     border-radius:5px;
-    color:white;
+    color:#fff;
     cursor:pointer;
     font-size:15px;
+}
+
+button:hover{
+    opacity:.9;
+}
+
+/* 按钮颜色 */
+
+#format{
+    background:#8e44ad;
 }
 
 #merge{
@@ -72,7 +83,7 @@ button{
 }
 
 #remove{
-    background:#e67e22;
+    background:#f39c12;
 }
 
 #copy{
@@ -83,22 +94,32 @@ button{
     background:#e74c3c;
 }
 
+#comma{
+    background:#16a085;
+}
+
+#semicolon{
+    background:#34495e;
+}
+
 .result{
     margin-top:20px;
 }
 
 .result textarea{
-    height:300px;
+    height:280px;
 }
 
 .count{
     margin-top:10px;
-    font-size:15px;
     color:#666;
+    font-size:15px;
 }
+
 </style>
 
 </head>
+
 <body>
 
 <div class="container">
@@ -108,26 +129,60 @@ button{
 <div class="top">
 
 <div class="box">
+
 <h3>原始号码</h3>
-<textarea id="left" placeholder="每行一个号码"></textarea>
+
+<textarea
+id="left"
+placeholder="支持：换行、英文逗号、英文分号、中文逗号、中文分号">
+</textarea>
+
 </div>
 
 <div class="box">
+
 <h3>上架 / 下架号码</h3>
-<textarea id="right" placeholder="每行一个号码"></textarea>
+
+<textarea
+id="right"
+placeholder="支持：换行、英文逗号、英文分号、中文逗号、中文分号">
+</textarea>
+
 </div>
 
 </div>
 
 <div class="buttons">
 
-<button id="merge" onclick="mergeNumbers()">上架</button>
+<button id="format" onclick="formatLeft()">
+号码换行
+</button>
 
-<button id="remove" onclick="removeNumbers()">下架</button>
+<button id="merge" onclick="mergeNumbers()">
+上架
+</button>
 
-<button id="copy" onclick="copyResult()">复制结果</button>
+<button id="remove" onclick="removeNumbers()">
+下架
+</button>
 
-<button id="clear" onclick="clearAll()">清空</button>
+<button id="copy" onclick="copyResult()">
+复制结果
+</button>
+
+<button id="clear" onclick="clearAll()">
+清空
+</button>
+
+<br><br>
+
+<button id="comma" onclick="formatComma()">
+英文逗号 ,
+</button>
+
+<button id="semicolon" onclick="formatSemicolon()">
+英文分号 ;
+</button>
 
 </div>
 
@@ -135,12 +190,26 @@ button{
 
 <h3>结果</h3>
 
-<textarea id="result" readonly></textarea>
+<textarea
+id="result"
+readonly>
+</textarea>
 
 <div class="count">
-左侧：<span id="leftCount">0</span>　
-右侧：<span id="rightCount">0</span>　
-结果：<span id="resultCount">0</span>
+
+左侧：
+<span id="leftCount">0</span>
+
+&nbsp;&nbsp;&nbsp;
+
+右侧：
+<span id="rightCount">0</span>
+
+&nbsp;&nbsp;&nbsp;
+
+结果：
+<span id="resultCount">0</span>
+
 </div>
 
 </div>
@@ -148,84 +217,140 @@ button{
 </div>
 
 <script>
-
+// 获取号码列表（支持：换行、英文逗号、英文分号、中文逗号、中文分号）
 function getList(id){
 
     return [...new Set(
         document.getElementById(id).value
-        .split(/\r?\n/)
-        .map(v=>v.trim())
-        .filter(v=>v!=="")
+            .replace(/[;,，；]/g,"\n")
+            .split(/\r?\n/)
+            .map(v=>v.trim())
+            .filter(v=>v!=="")
     )];
 
 }
 
-function updateCount(){
 
-    document.getElementById("leftCount").innerText=getList("left").length;
+// 左侧号码换行
+function formatLeft(){
 
-    document.getElementById("rightCount").innerText=getList("right").length;
+    let list = getList("left");
 
-    document.getElementById("resultCount").innerText=getList("result").length;
-
-}
-
-function mergeNumbers(){
-
-    let left=getList("left");
-
-    let right=getList("right");
-
-    let result=[...new Set([...left,...right])];
-
-    document.getElementById("result").value=result.join("\n");
+    document.getElementById("left").value = list.join("\n");
 
     updateCount();
 
 }
 
+
+// 更新统计
+function updateCount(){
+
+    document.getElementById("leftCount").innerText =
+        getList("left").length;
+
+    document.getElementById("rightCount").innerText =
+        getList("right").length;
+
+    document.getElementById("resultCount").innerText =
+        getList("result").length;
+
+}
+
+
+// 上架（并集）
+function mergeNumbers(){
+
+    let left = getList("left");
+
+    let right = getList("right");
+
+    let result = [...new Set([...left,...right])];
+
+    document.getElementById("result").value =
+        result.join("\n");
+
+    updateCount();
+
+}
+
+
+// 下架（删除相同号码）
 function removeNumbers(){
 
-    let left=getList("left");
+    let left = getList("left");
 
-    let right=getList("right");
+    let right = getList("right");
 
-    let leftSet=new Set(left);
+    let leftSet = new Set(left);
 
-    let rightSet=new Set(right);
+    let rightSet = new Set(right);
 
-    let result=[];
+    let result = [];
 
     left.forEach(item=>{
+
         if(!rightSet.has(item)){
+
             result.push(item);
+
         }
+
     });
 
     right.forEach(item=>{
+
         if(!leftSet.has(item)){
+
             result.push(item);
+
         }
+
     });
 
-    document.getElementById("result").value=result.join("\n");
+    document.getElementById("result").value =
+        result.join("\n");
 
     updateCount();
 
 }
 
-function copyResult(){
 
-    let txt=document.getElementById("result");
+// 转英文逗号
+function formatComma(){
 
-    txt.select();
+    let list = getList("result");
 
-    document.execCommand("copy");
-
-    alert("复制成功！");
+    document.getElementById("result").value =
+        list.join(",");
 
 }
 
+
+// 转英文分号
+function formatSemicolon(){
+
+    let list = getList("result");
+
+    document.getElementById("result").value =
+        list.join(";");
+
+}
+
+
+// 复制结果（不弹提示）
+function copyResult(){
+
+    let text = document.getElementById("result").value;
+
+    if(text==="") return;
+
+    navigator.clipboard.writeText(text);
+
+}
+
+
+// 清空
 function clearAll(){
 
     document.getElementById("left").value="";
@@ -238,8 +363,13 @@ function clearAll(){
 
 }
 
-document.getElementById("left").addEventListener("input",updateCount);
-document.getElementById("right").addEventListener("input",updateCount);
+
+// 实时统计
+document.getElementById("left")
+.addEventListener("input",updateCount);
+
+document.getElementById("right")
+.addEventListener("input",updateCount);
 
 updateCount();
 
