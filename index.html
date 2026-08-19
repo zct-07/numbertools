@@ -1,296 +1,1258 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>号码上架/下架工具</title>
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>号码上架 / 下架工具</title>
+
 
 <style>
+
+/* =========================================================
+   全局
+   ========================================================= */
 
 *{
     margin:0;
     padding:0;
     box-sizing:border-box;
-    font-family:"Microsoft YaHei";
+    font-family:"Microsoft YaHei", Arial, sans-serif;
 }
+
 
 body{
     background:#f5f6fa;
     padding:20px;
 }
 
+
 .container{
     max-width:1300px;
-    margin:auto;
+    margin:0 auto;
 }
+
+
+/* =========================================================
+   标题
+   ========================================================= */
 
 h2{
     text-align:center;
-    margin-bottom:20px;
+    margin-bottom:30px;
+    font-size:28px;
+    color:#111;
 }
+
+
+/* =========================================================
+   左右输入区域
+   ========================================================= */
 
 .top{
     display:flex;
     gap:20px;
+    width:100%;
 }
+
 
 .box{
     flex:1;
+    min-width:0;
 }
+
 
 .box h3{
     margin-bottom:10px;
+    font-size:20px;
+    color:#111;
 }
 
-textarea{
+
+/* =========================================================
+   编辑器
+   ========================================================= */
+
+.editor{
+
+    position:relative;
+
     width:100%;
+
     height:420px;
-    resize:none;
-    border:1px solid #ccc;
-    border-radius:6px;
-    padding:10px;
-    font-size:15px;
-    outline:none;
+
 }
+
+
+/* =========================================================
+   高亮显示层
+   ========================================================= */
+
+.highlight-layer{
+
+    position:absolute;
+
+    left:0;
+
+    top:0;
+
+    width:100%;
+
+    height:100%;
+
+    padding:10px;
+
+    border:1px solid #ccc;
+
+    border-radius:6px;
+
+    background:#fff;
+
+    font-size:15px;
+
+    line-height:normal;
+
+    white-space:pre-wrap;
+
+    word-wrap:break-word;
+
+    overflow:hidden;
+
+    pointer-events:none;
+
+    color:#000;
+
+    z-index:1;
+
+}
+
+
+/* =========================================================
+   相同号码黄色高亮
+   ========================================================= */
+
+.highlight-number{
+
+    background:#ffeb3b;
+
+    color:#000;
+
+    border-radius:3px;
+
+    padding:1px 2px;
+
+}
+
+
+/* =========================================================
+   实际输入框
+   ========================================================= */
+
+.editor textarea{
+
+    position:absolute;
+
+    left:0;
+
+    top:0;
+
+    width:100%;
+
+    height:100%;
+
+    resize:none;
+
+    border:1px solid #ccc;
+
+    border-radius:6px;
+
+    padding:10px;
+
+    font-size:15px;
+
+    line-height:normal;
+
+    outline:none;
+
+    background:transparent;
+
+    /*
+     * 文字透明
+     * 实际文字由下面的高亮层显示
+     */
+    color:transparent;
+
+    /*
+     * 保留黑色光标
+     */
+    caret-color:#000;
+
+    overflow:auto;
+
+    z-index:2;
+
+}
+
+
+/* =========================================================
+   输入框获得焦点
+   ========================================================= */
+
+.editor textarea:focus{
+
+    border-color:#3498db;
+
+    box-shadow:
+        0 0 0 1px rgba(52,152,219,.15);
+
+}
+
+
+/* =========================================================
+   placeholder
+   ========================================================= */
+
+.editor textarea::placeholder{
+
+    color:#999;
+
+}
+
+
+/* =========================================================
+   按钮区域
+   ========================================================= */
 
 .buttons{
+
     margin:20px 0;
+
     text-align:center;
+
 }
+
+
+/* =========================================================
+   通用按钮
+   ========================================================= */
 
 button{
+
     padding:10px 25px;
+
     margin:0 6px;
+
     border:none;
+
     border-radius:5px;
+
     color:#fff;
+
     cursor:pointer;
+
     font-size:15px;
+
+    transition:all .2s;
+
 }
+
 
 button:hover{
+
     opacity:.9;
+
+    transform:translateY(-1px);
+
 }
 
-/* 按钮颜色 */
+
+button:active{
+
+    transform:translateY(0);
+
+}
+
+
+/* =========================================================
+   按钮颜色
+   ========================================================= */
 
 #format{
+
     background:#8e44ad;
+
 }
+
 
 #merge{
+
     background:#2ecc71;
+
 }
+
 
 #remove{
+
     background:#f39c12;
+
 }
+
 
 #copy{
+
     background:#3498db;
+
 }
+
 
 #clear{
+
     background:#e74c3c;
+
 }
+
+
+#prefix22{
+
+    background:#e91e63;
+
+}
+
+
+#prefix33{
+
+    background:#673ab7;
+
+}
+
 
 #comma{
+
     background:#16a085;
+
 }
+
 
 #semicolon{
+
     background:#34495e;
+
 }
+
+
+/* =========================================================
+   高亮说明
+   ========================================================= */
+
+.tip{
+
+    margin-top:10px;
+
+    font-size:13px;
+
+    color:#888;
+
+}
+
+
+.tip span{
+
+    display:inline-block;
+
+    width:14px;
+
+    height:14px;
+
+    background:#ffeb3b;
+
+    vertical-align:-2px;
+
+    border-radius:2px;
+
+    margin-right:5px;
+
+}
+
+
+/* =========================================================
+   结果区域
+   ========================================================= */
 
 .result{
-    margin-top:20px;
+
+    margin-top:25px;
+
 }
+
+
+.result h3{
+
+    margin-bottom:10px;
+
+    font-size:20px;
+
+}
+
 
 .result textarea{
+
+    width:100%;
+
     height:280px;
+
+    resize:none;
+
+    border:1px solid #ccc;
+
+    border-radius:6px;
+
+    padding:10px;
+
+    font-size:15px;
+
+    line-height:normal;
+
+    outline:none;
+
+    background:#fff;
+
+    color:#000;
+
 }
 
+
+.result textarea:focus{
+
+    border-color:#3498db;
+
+}
+
+
+/* =========================================================
+   统计
+   ========================================================= */
+
 .count{
+
     margin-top:10px;
+
     color:#666;
+
     font-size:15px;
+
+}
+
+
+.count span{
+
+    font-weight:bold;
+
+    color:#333;
+
+}
+
+
+/* =========================================================
+   手机端
+   ========================================================= */
+
+@media(max-width:800px){
+
+    body{
+
+        padding:10px;
+
+    }
+
+
+    h2{
+
+        font-size:22px;
+
+        margin-bottom:20px;
+
+    }
+
+
+    .top{
+
+        flex-direction:column;
+
+    }
+
+
+    .editor{
+
+        height:300px;
+
+    }
+
+
+    button{
+
+        margin-bottom:8px;
+
+    }
+
 }
 
 </style>
 
 </head>
 
+
 <body>
+
 
 <div class="container">
 
-<h2>号码上架 / 下架工具</h2>
 
-<div class="top">
+    <!-- =====================================================
+         页面标题
+         ===================================================== -->
 
-<div class="box">
+    <h2>
+        号码上架 / 下架工具
+    </h2>
 
-<h3>原始号码</h3>
 
-<textarea
-id="left"
-placeholder="支持：换行、英文逗号、英文分号、中文逗号、中文分号">
-</textarea>
+
+    <!-- =====================================================
+         左右号码输入区域
+         ===================================================== -->
+
+    <div class="top">
+
+
+        <!-- =================================================
+             左侧：原始号码
+             ================================================= -->
+
+        <div class="box">
+
+            <h3>
+                原始号码
+            </h3>
+
+
+            <div class="editor">
+
+
+                <!--
+                    高亮显示层
+                -->
+
+                <div
+                    id="leftHighlight"
+                    class="highlight-layer"
+                ></div>
+
+
+                <!--
+                    实际输入框
+                -->
+
+                <textarea
+                    id="left"
+                    placeholder="支持：换行、英文逗号、英文分号、中文逗号、中文分号"
+                    spellcheck="false"
+                ></textarea>
+
+
+            </div>
+
+        </div>
+
+
+
+        <!-- =================================================
+             右侧：上架 / 下架号码
+             ================================================= -->
+
+        <div class="box">
+
+            <h3>
+                上架 / 下架号码
+            </h3>
+
+
+            <div class="editor">
+
+
+                <!--
+                    高亮显示层
+                -->
+
+                <div
+                    id="rightHighlight"
+                    class="highlight-layer"
+                ></div>
+
+
+                <!--
+                    实际输入框
+                -->
+
+                <textarea
+                    id="right"
+                    placeholder="支持：换行、英文逗号、英文分号、中文逗号、中文分号"
+                    spellcheck="false"
+                ></textarea>
+
+
+            </div>
+
+        </div>
+
+
+    </div>
+
+
+
+    <!-- =====================================================
+         操作按钮
+         ===================================================== -->
+
+    <div class="buttons">
+
+
+        <!-- 第一排 -->
+
+        <button
+            id="format"
+            onclick="formatLeft()"
+        >
+            号码换行
+        </button>
+
+
+        <button
+            id="merge"
+            onclick="mergeNumbers()"
+        >
+            上架
+        </button>
+
+
+        <button
+            id="remove"
+            onclick="removeNumbers()"
+        >
+            下架
+        </button>
+
+
+        <button
+            id="copy"
+            onclick="copyResult()"
+        >
+            复制结果
+        </button>
+
+
+        <button
+            id="clear"
+            onclick="clearAll()"
+        >
+            清空
+        </button>
+
+
+        <button
+            id="prefix22"
+            onclick="addPrefix('22')"
+        >
+            前缀22
+        </button>
+
+
+        <button
+            id="prefix33"
+            onclick="addPrefix('33')"
+        >
+            前缀33
+        </button>
+
+
+        <br>
+
+        <br>
+
+
+        <!-- 第二排 -->
+
+        <button
+            id="comma"
+            onclick="formatComma()"
+        >
+            英文逗号 ,
+        </button>
+
+
+        <button
+            id="semicolon"
+            onclick="formatSemicolon()"
+        >
+            英文分号 ;
+        </button>
+
+
+    </div>
+
+
+
+    <!-- =====================================================
+         高亮说明
+         ===================================================== -->
+
+    <div class="tip">
+
+        <span></span>
+
+        黄色号码表示左右两边存在相同号码
+
+    </div>
+
+
+
+    <!-- =====================================================
+         结果
+         ===================================================== -->
+
+    <div class="result">
+
+        <h3>
+            结果
+        </h3>
+
+
+        <textarea
+            id="result"
+            readonly
+        ></textarea>
+
+
+        <!-- =================================================
+             统计
+             ================================================= -->
+
+        <div class="count">
+
+            左侧：
+            <span id="leftCount">0</span>
+
+            &nbsp;&nbsp;&nbsp;
+
+            右侧：
+            <span id="rightCount">0</span>
+
+            &nbsp;&nbsp;&nbsp;
+
+            结果：
+            <span id="resultCount">0</span>
+
+        </div>
+
+    </div>
+
 
 </div>
 
-<div class="box">
 
-<h3>上架 / 下架号码</h3>
-
-<textarea
-id="right"
-placeholder="支持：换行、英文逗号、英文分号、中文逗号、中文分号">
-</textarea>
-
-</div>
-
-</div>
-
-<div class="buttons">
-
-<button id="format" onclick="formatLeft()">
-号码换行
-</button>
-
-<button id="merge" onclick="mergeNumbers()">
-上架
-</button>
-
-<button id="remove" onclick="removeNumbers()">
-下架
-</button>
-
-<button id="copy" onclick="copyResult()">
-复制结果
-</button>
-
-<button id="clear" onclick="clearAll()">
-清空
-</button>
-
-<br><br>
-
-<button id="comma" onclick="formatComma()">
-英文逗号 ,
-</button>
-
-<button id="semicolon" onclick="formatSemicolon()">
-英文分号 ;
-</button>
-
-</div>
-
-<div class="result">
-
-<h3>结果</h3>
-
-<textarea
-id="result"
-readonly>
-</textarea>
-
-<div class="count">
-
-左侧：
-<span id="leftCount">0</span>
-
-&nbsp;&nbsp;&nbsp;
-
-右侧：
-<span id="rightCount">0</span>
-
-&nbsp;&nbsp;&nbsp;
-
-结果：
-<span id="resultCount">0</span>
-
-</div>
-
-</div>
-
-</div>
 
 <script>
-// 获取号码列表（支持：换行、英文逗号、英文分号、中文逗号、中文分号）
+
+
+/* =========================================================
+   获取页面元素
+   ========================================================= */
+
+const leftTextarea =
+    document.getElementById("left");
+
+
+const rightTextarea =
+    document.getElementById("right");
+
+
+const resultTextarea =
+    document.getElementById("result");
+
+
+const leftHighlight =
+    document.getElementById("leftHighlight");
+
+
+const rightHighlight =
+    document.getElementById("rightHighlight");
+
+
+
+/* =========================================================
+   获取号码列表
+   =========================================================
+   
+   支持：
+
+   01012345678
+   01012345679
+
+   或：
+
+   01012345678,01012345679
+
+   或：
+
+   01012345678;01012345679
+
+   或中文逗号、中文分号
+   ========================================================= */
+
 function getList(id){
 
-    return [...new Set(
-        document.getElementById(id).value
-            .replace(/[;,，；]/g,"\n")
-            .split(/\r?\n/)
-            .map(v=>v.trim())
-            .filter(v=>v!=="")
-    )];
+    const element =
+        document.getElementById(id);
+
+
+    if(!element){
+
+        return [];
+
+    }
+
+
+    return [
+
+        ...new Set(
+
+            element.value
+
+                /*
+                 * 所有逗号、分号转换成换行
+                 */
+
+                .replace(
+                    /[;,，；]/g,
+                    "\n"
+                )
+
+                /*
+                 * 按换行拆分
+                 */
+
+                .split(/\r?\n/)
+
+                /*
+                 * 去除前后空格
+                 */
+
+                .map(function(value){
+
+                    return value.trim();
+
+                })
+
+                /*
+                 * 删除空号码
+                 */
+
+                .filter(function(value){
+
+                    return value !== "";
+
+                })
+
+        )
+
+    ];
 
 }
 
 
-// 左侧号码换行
-function formatLeft(){
 
-    let list = getList("left");
+/* =========================================================
+   HTML 转义
+   ========================================================= */
 
-    document.getElementById("left").value = list.join("\n");
+function escapeHtml(text){
 
-    updateCount();
+    return text
+
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+
+        .replace(
+            /</g,
+            "&lt;"
+        )
+
+        .replace(
+            />/g,
+            "&gt;"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+
+        .replace(
+            /'/g,
+            "&#039;"
+        );
 
 }
 
 
-// 更新统计
+
+/* =========================================================
+   创建高亮 HTML
+   ========================================================= */
+
+function createHighlightHtml(
+    text,
+    otherList
+){
+
+    if(!text){
+
+        return "";
+
+    }
+
+
+    /*
+     * 保留：
+     *
+     * 换行
+     * 空格
+     * 逗号
+     * 分号
+     *
+     * 这样高亮显示不会改变原来的格式
+     */
+
+    const parts =
+        text.split(
+            /([;,，；\s]+)/
+        );
+
+
+    let html = "";
+
+
+    parts.forEach(function(part){
+
+
+        /*
+         * 空字符串
+         */
+
+        if(part === ""){
+
+            return;
+
+        }
+
+
+        /*
+         * 分隔符
+         */
+
+        if(
+            /^[;,，；\s]+$/.test(part)
+        ){
+
+            html +=
+                escapeHtml(part);
+
+            return;
+
+        }
+
+
+        /*
+         * 当前号码
+         */
+
+        const number =
+            part.trim();
+
+
+        /*
+         * 如果号码为空
+         */
+
+        if(number === ""){
+
+            html +=
+                escapeHtml(part);
+
+            return;
+
+        }
+
+
+        /*
+         * 如果另一侧存在相同号码
+         *
+         * 黄色显示
+         */
+
+        if(
+            otherList.has(number)
+        ){
+
+            html +=
+
+                '<span class="highlight-number">' +
+
+                escapeHtml(part) +
+
+                '</span>';
+
+        }
+
+        else{
+
+            html +=
+                escapeHtml(part);
+
+        }
+
+    });
+
+
+    return html;
+
+}
+
+
+
+/* =========================================================
+   更新左右黄色高亮
+   ========================================================= */
+
+function updateHighlights(){
+
+    /*
+     * 左侧号码
+     */
+
+    const leftList =
+        new Set(
+            getList("left")
+        );
+
+
+    /*
+     * 右侧号码
+     */
+
+    const rightList =
+        new Set(
+            getList("right")
+        );
+
+
+    /*
+     * 左侧：
+     *
+     * 如果右侧也存在
+     * 就黄色高亮
+     */
+
+    leftHighlight.innerHTML =
+        createHighlightHtml(
+            leftTextarea.value,
+            rightList
+        );
+
+
+    /*
+     * 右侧：
+     *
+     * 如果左侧也存在
+     * 就黄色高亮
+     */
+
+    rightHighlight.innerHTML =
+        createHighlightHtml(
+            rightTextarea.value,
+            leftList
+        );
+
+
+    /*
+     * 同步滚动位置
+     */
+
+    leftHighlight.scrollTop =
+        leftTextarea.scrollTop;
+
+
+    leftHighlight.scrollLeft =
+        leftTextarea.scrollLeft;
+
+
+    rightHighlight.scrollTop =
+        rightTextarea.scrollTop;
+
+
+    rightHighlight.scrollLeft =
+        rightTextarea.scrollLeft;
+
+}
+
+
+
+/* =========================================================
+   更新统计
+   ========================================================= */
+
 function updateCount(){
 
-    document.getElementById("leftCount").innerText =
+    document.getElementById(
+        "leftCount"
+    ).innerText =
         getList("left").length;
 
-    document.getElementById("rightCount").innerText =
+
+    document.getElementById(
+        "rightCount"
+    ).innerText =
         getList("right").length;
 
-    document.getElementById("resultCount").innerText =
+
+    document.getElementById(
+        "resultCount"
+    ).innerText =
         getList("result").length;
 
 }
 
 
-// 上架（并集）
+
+/* =========================================================
+   号码换行
+   ========================================================= */
+
+function formatLeft(){
+
+    const list =
+        getList("left");
+
+
+    leftTextarea.value =
+        list.join("\n");
+
+
+    updateCount();
+
+    updateHighlights();
+
+}
+
+
+
+/* =========================================================
+   上架
+   =========================================================
+   
+   逻辑：
+
+   左侧号码 + 右侧号码
+
+   自动去重
+   ========================================================= */
+
 function mergeNumbers(){
 
-    let left = getList("left");
+    const left =
+        getList("left");
 
-    let right = getList("right");
 
-    let result = [...new Set([...left,...right])];
+    const right =
+        getList("right");
 
-    document.getElementById("result").value =
+
+    const result = [
+
+        ...new Set(
+
+            [
+                ...left,
+                ...right
+            ]
+
+        )
+
+    ];
+
+
+    resultTextarea.value =
         result.join("\n");
+
 
     updateCount();
 
 }
 
 
-// 下架（删除相同号码）
+
+/* =========================================================
+   下架
+   =========================================================
+   
+   删除左右两边相同的号码
+   
+   最终保留：
+   
+   左边有、右边没有
+   
+   或
+   
+   右边有、左边没有
+   ========================================================= */
+
 function removeNumbers(){
 
-    let left = getList("left");
+    const left =
+        getList("left");
 
-    let right = getList("right");
 
-    let leftSet = new Set(left);
+    const right =
+        getList("right");
 
-    let rightSet = new Set(right);
 
-    let result = [];
+    const leftSet =
+        new Set(left);
 
-    left.forEach(item=>{
 
-        if(!rightSet.has(item)){
+    const rightSet =
+        new Set(right);
+
+
+    const result = [];
+
+
+    /*
+     * 左边独有号码
+     */
+
+    left.forEach(function(item){
+
+        if(
+            !rightSet.has(item)
+        ){
 
             result.push(item);
 
@@ -298,9 +1260,16 @@ function removeNumbers(){
 
     });
 
-    right.forEach(item=>{
 
-        if(!leftSet.has(item)){
+    /*
+     * 右边独有号码
+     */
+
+    right.forEach(function(item){
+
+        if(
+            !leftSet.has(item)
+        ){
 
             result.push(item);
 
@@ -308,72 +1277,535 @@ function removeNumbers(){
 
     });
 
-    document.getElementById("result").value =
+
+    /*
+     * 输出结果
+     */
+
+    resultTextarea.value =
         result.join("\n");
 
+
     updateCount();
 
 }
 
 
-// 转英文逗号
+
+/* =========================================================
+   结果转英文逗号
+   ========================================================= */
+
 function formatComma(){
 
-    let list = getList("result");
+    const list =
+        getList("result");
 
-    document.getElementById("result").value =
+
+    resultTextarea.value =
         list.join(",");
 
-}
-
-
-// 转英文分号
-function formatSemicolon(){
-
-    let list = getList("result");
-
-    document.getElementById("result").value =
-        list.join(";");
-
-}
-
-
-// 复制结果（不弹提示）
-function copyResult(){
-
-    let text = document.getElementById("result").value;
-
-    if(text==="") return;
-
-    navigator.clipboard.writeText(text);
-
-}
-
-
-// 清空
-function clearAll(){
-
-    document.getElementById("left").value="";
-
-    document.getElementById("right").value="";
-
-    document.getElementById("result").value="";
 
     updateCount();
 
 }
 
 
-// 实时统计
-document.getElementById("left")
-.addEventListener("input",updateCount);
 
-document.getElementById("right")
-.addEventListener("input",updateCount);
+/* =========================================================
+   结果转英文分号
+   ========================================================= */
+
+function formatSemicolon(){
+
+    const list =
+        getList("result");
+
+
+    resultTextarea.value =
+        list.join(";");
+
+
+    updateCount();
+
+}
+
+
+
+/* =========================================================
+   复制结果
+   ========================================================= */
+
+function copyResult(){
+
+    const text =
+        resultTextarea.value;
+
+
+    /*
+     * 没有结果
+     */
+
+    if(text === ""){
+
+        return;
+
+    }
+
+
+    /*
+     * 优先使用 Clipboard API
+     */
+
+    if(
+        navigator.clipboard &&
+        navigator.clipboard.writeText
+    ){
+
+        navigator.clipboard
+            .writeText(text);
+
+        return;
+
+    }
+
+
+    /*
+     * 兼容旧浏览器
+     */
+
+    resultTextarea.focus();
+
+    resultTextarea.select();
+
+    document.execCommand("copy");
+
+}
+
+
+
+/* =========================================================
+   清空
+   ========================================================= */
+
+function clearAll(){
+
+    leftTextarea.value = "";
+
+    rightTextarea.value = "";
+
+    resultTextarea.value = "";
+
+
+    updateCount();
+
+    updateHighlights();
+
+}
+
+
+
+/* =========================================================
+   前缀处理核心函数
+   ========================================================= */
+
+function addPrefixToText(
+    text,
+    prefix
+){
+
+    /*
+     * 按照：
+     *
+     * 换行
+     * 空格
+     * 英文逗号
+     * 英文分号
+     * 中文逗号
+     * 中文分号
+     *
+     * 拆分
+     */
+
+    return text
+
+        .split(
+            /([;,，；\s]+)/
+        )
+
+        .map(function(part){
+
+
+            /*
+             * 分隔符不处理
+             */
+
+            if(
+                /^[;,，；\s]+$/.test(part)
+            ){
+
+                return part;
+
+            }
+
+
+            /*
+             * 空内容不处理
+             */
+
+            if(
+                part.trim() === ""
+            ){
+
+                return part;
+
+            }
+
+
+            /*
+             * 去掉号码两边空格
+             */
+
+            const number =
+                part.trim();
+
+
+            /*
+             * 如果已经是22开头
+             *
+             * 不重复添加
+             */
+
+            if(
+                number.startsWith("22")
+            ){
+
+                return part;
+
+            }
+
+
+            /*
+             * 如果已经是33开头
+             *
+             * 不重复添加
+             */
+
+            if(
+                number.startsWith("33")
+            ){
+
+                return part;
+
+            }
+
+
+            /*
+             * 找到号码在原字符串中的位置
+             *
+             * 保留原来的空格
+             */
+
+            const index =
+                part.indexOf(number);
+
+
+            if(index >= 0){
+
+                return (
+
+                    part.substring(
+                        0,
+                        index
+                    )
+
+                    +
+
+                    prefix
+
+                    +
+
+                    number
+
+                    +
+
+                    part.substring(
+                        index + number.length
+                    )
+
+                );
+
+            }
+
+
+            return prefix + part;
+
+        })
+
+        .join("");
+
+}
+
+
+
+/* =========================================================
+   添加前缀22 / 33
+   =========================================================
+   
+   使用方式：
+   
+   1. 在结果框中选中部分号码
+      → 只给选中的号码加前缀
+   
+   2. 没有选择
+      → 给结果框全部号码加前缀
+   
+   例如：
+   
+   原来：
+   
+   01021944585
+   01021944587
+   01021944592
+   
+   选中：
+   
+   01021944587
+   01021944592
+   
+   点击「前缀33」
+   
+   变成：
+   
+   01021944585
+   3301021944587
+   3301021944592
+   ========================================================= */
+
+function addPrefix(prefix){
+
+    const textarea =
+        document.getElementById("result");
+
+
+    const text =
+        textarea.value;
+
+
+    /*
+     * 没有结果
+     */
+
+    if(text === ""){
+
+        return;
+
+    }
+
+
+    /*
+     * 当前选中区域
+     */
+
+    const start =
+        textarea.selectionStart;
+
+
+    const end =
+        textarea.selectionEnd;
+
+
+    /*
+     * =====================================================
+     * 情况一：
+     *
+     * 用户选中了部分号码
+     *
+     * 只处理选中的号码
+     * =====================================================
+     */
+
+    if(start !== end){
+
+        const selected =
+            text.substring(
+                start,
+                end
+            );
+
+
+        /*
+         * 添加前缀
+         */
+
+        const newText =
+            addPrefixToText(
+                selected,
+                prefix
+            );
+
+
+        /*
+         * 替换选中的内容
+         */
+
+        textarea.value =
+
+            text.substring(
+                0,
+                start
+            )
+
+            +
+
+            newText
+
+            +
+
+            text.substring(
+                end
+            );
+
+
+        /*
+         * 保持焦点
+         */
+
+        textarea.focus();
+
+
+        /*
+         * 保持新的内容处于选中状态
+         */
+
+        textarea.setSelectionRange(
+
+            start,
+
+            start + newText.length
+
+        );
+
+    }
+
+
+    /*
+     * =====================================================
+     * 情况二：
+     *
+     * 没有选中
+     *
+     * 给全部结果添加前缀
+     * =====================================================
+     */
+
+    else{
+
+        textarea.value =
+            addPrefixToText(
+                text,
+                prefix
+            );
+
+    }
+
+
+    /*
+     * 更新统计
+     */
+
+    updateCount();
+
+}
+
+
+
+/* =========================================================
+   左侧输入监听
+   ========================================================= */
+
+leftTextarea.addEventListener(
+    "input",
+    function(){
+
+        updateCount();
+
+        updateHighlights();
+
+    }
+);
+
+
+
+/* =========================================================
+   右侧输入监听
+   ========================================================= */
+
+rightTextarea.addEventListener(
+    "input",
+    function(){
+
+        updateCount();
+
+        updateHighlights();
+
+    }
+);
+
+
+
+/* =========================================================
+   左侧滚动同步
+   ========================================================= */
+
+leftTextarea.addEventListener(
+    "scroll",
+    function(){
+
+        leftHighlight.scrollTop =
+            leftTextarea.scrollTop;
+
+
+        leftHighlight.scrollLeft =
+            leftTextarea.scrollLeft;
+
+    }
+);
+
+
+
+/* =========================================================
+   右侧滚动同步
+   ========================================================= */
+
+rightTextarea.addEventListener(
+    "scroll",
+    function(){
+
+        rightHighlight.scrollTop =
+            rightTextarea.scrollTop;
+
+
+        rightHighlight.scrollLeft =
+            rightTextarea.scrollLeft;
+
+    }
+);
+
+
+
+/* =========================================================
+   初始化
+   ========================================================= */
 
 updateCount();
 
+updateHighlights();
+
+
 </script>
 
+
 </body>
+
 </html>
